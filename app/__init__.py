@@ -12,6 +12,33 @@ migrate = Migrate()
 csrf = CSRFProtect()
 
 def create_app(config_name='development'):
+        # Ensure tables exist and seed levels if needed
+        from app.models import Level, User
+        with app.app_context():
+            db.create_all()
+            if Level.query.count() == 0:
+                default_levels = [
+                    {'name': 'Level 1 - Tutorial', 'description': 'Learn the basics', 'difficulty': 'Easy'},
+                    {'name': 'Level 2 - Getting Started', 'description': 'Apply your skills', 'difficulty': 'Easy'},
+                    {'name': 'Level 3 - Intermediate Challenge', 'description': 'Test your abilities', 'difficulty': 'Medium'},
+                    {'name': 'Level 4 - Advanced Tactics', 'description': 'Master complex mechanics', 'difficulty': 'Medium'},
+                    {'name': 'Level 5 - Expert Trial', 'description': 'Push your limits', 'difficulty': 'Hard'},
+                    {'name': 'Level 6 - Nightmare Mode', 'description': 'Only for the best', 'difficulty': 'Hard'},
+                ]
+                for lvl in default_levels:
+                    level = Level(**lvl)
+                    db.session.add(level)
+                db.session.commit()
+
+            # Create default admin user if none exists
+            if not User.query.filter_by(is_admin=True).first():
+                admin_username = os.environ.get('ADMIN_USERNAME', 'NaterGamer')
+                admin_email = os.environ.get('ADMIN_EMAIL', 'Natercase2@gmail.com')
+                admin_password = os.environ.get('ADMIN_PASSWORD', 'Nc522774')
+                admin = User(username=admin_username, email=admin_email, is_admin=True)
+                admin.set_password(admin_password)
+                db.session.add(admin)
+                db.session.commit()
     app = Flask(__name__)
     app.config.from_object(config[config_name])
 
