@@ -1,0 +1,86 @@
+name: Build and Deploy Static Site
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Initialize database
+        run: |
+          export FLASK_APP=run.py
+          export FLASK_ENV=development
+          # migrations folder may not exist in this repository; ignore failures
+          flask db upgrade || true
+          flask seed-levels || true
+          python - <<'PYCODE'
+from app import db
+from app.models import User, Claim, Level
+from datetime import datetime
+# ensure tables exist and at least one level row
+with db.app.app_context():
+    db.create_all()
+
+if not User.query.filter_by(username='demo').first():
+    u = User(username='demo', email='demo@example.com')
+    u.set_password('password')
+    db.session.add(u)
+    db.session.commit()
+else:
+    u = User.query.filter_by(username='demo').first()
+level = Level.query.first()
+if level and u:
+    if not Claim.query.filter_by(user_id=u.id, level_id=level.id).first():
+        c = Claim(user_id=u.id, level_id=level.id, youtube_link='https://youtu.be/dQw4w9WgXcQ', status='approved', submitted_at=datetime.utcnow())
+        db.session.add(c)
+        db.session.commit()
+PYCODE
+
+      - name: Freeze static site
+        run: |
+          export FLASK_APP=run.py
+          export FLASK_ENV=development
+          export FREEZER_BASE_URL=https://natergamer101.github.io/Flying-Demons-List/
+          flask freeze
+          touch build/.nojekyll
+
+      - name: Deploy to gh-pages branch manually
+        env:
+          REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          # fetch or clone the gh-pages branch
+          if git ls-remote --exit-code --heads https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git gh-pages; then
+              git clone --branch gh-pages --depth 1 https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git gh-pages
+          else
+              git clone https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git gh-pages
+              cd gh-pages
+              git checkout --orphan gh-pages
+              cd ..
+          fi
+          cd gh-pages
+          # remove existing contents but keep .git
+          git rm -rf . || true
+          cp -R ../build/* .
+          cp ../build/.nojekyll .
+          git add .
+          git commit -m "Auto deploy static site on $(date -u)" || echo "nothing to commit"
+          git push https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git gh-pages --force
