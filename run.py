@@ -31,7 +31,14 @@ def create_admin(username, email, password):
 @app.cli.command()
 def seed_levels():
     """Seed initial game levels."""
-    levels = []
+    levels = [
+        {'name': 'Level 1 - Tutorial', 'description': 'Learn the basics', 'difficulty': 'Easy'},
+        {'name': 'Level 2 - Getting Started', 'description': 'Apply your skills', 'difficulty': 'Easy'},
+        {'name': 'Level 3 - Intermediate Challenge', 'description': 'Test your abilities', 'difficulty': 'Medium'},
+        {'name': 'Level 4 - Advanced Tactics', 'description': 'Master complex mechanics', 'difficulty': 'Medium'},
+        {'name': 'Level 5 - Expert Trial', 'description': 'Push your limits', 'difficulty': 'Hard'},
+        {'name': 'Level 6 - Nightmare Mode', 'description': 'Only for the best', 'difficulty': 'Hard'},
+    ]
     for level_data in levels:
         existing = Level.query.filter_by(name=level_data['name']).first()
         if not existing:
@@ -96,6 +103,25 @@ def freeze():
     # expects them).
     project_root = os.path.abspath(os.path.join(app.root_path, os.pardir))
     app.config['FREEZER_DESTINATION'] = os.path.join(project_root, 'build')
+
+    # ensure database exists and has some data for freezing
+    try:
+        with app.app_context():
+            db.create_all()
+            # seed default levels if none exist
+            if Level.query.count() == 0:
+                for lvl in [
+                    {'name': 'Level 1 - Tutorial', 'description': 'Learn the basics', 'difficulty': 'Easy'},
+                    {'name': 'Level 2 - Getting Started', 'description': 'Apply your skills', 'difficulty': 'Easy'},
+                    {'name': 'Level 3 - Intermediate Challenge', 'description': 'Test your abilities', 'difficulty': 'Medium'},
+                    {'name': 'Level 4 - Advanced Tactics', 'description': 'Master complex mechanics', 'difficulty': 'Medium'},
+                    {'name': 'Level 5 - Expert Trial', 'description': 'Push your limits', 'difficulty': 'Hard'},
+                    {'name': 'Level 6 - Nightmare Mode', 'description': 'Only for the best', 'difficulty': 'Hard'},
+                ]:
+                    db.session.add(Level(**lvl))
+                db.session.commit()
+    except Exception:
+        pass
 
     freezer = Freezer(app)
 
