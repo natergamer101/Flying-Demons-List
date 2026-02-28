@@ -52,6 +52,8 @@ def create_app(config_name='development'):
             db.session.commit()
 
 
+
+
         from flask import Flask
         from flask_sqlalchemy import SQLAlchemy
         from flask_login import LoginManager
