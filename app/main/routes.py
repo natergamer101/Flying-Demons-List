@@ -37,7 +37,7 @@ def index():
         'total_levels': total_levels
     }
 
-    return render_template('index.html', hardest_levels=hardest_levels, stats=stats)
+    return render_template('main/index.html', hardest_levels=hardest_levels, stats=stats)
 
 @main_bp.route('/leaderboard')
 def leaderboard():

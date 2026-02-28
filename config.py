@@ -15,8 +15,9 @@ class Config:
 
 class DevelopmentConfig(Config):
     DEBUG = True
+    # default to a local SQLite file for easier setup and GitHub Actions
     SQLALCHEMY_DATABASE_URI = os.environ.get('DEV_DATABASE_URL') or \
-        'postgresql://localhost/leaderboard_dev'
+        'sqlite:///' + os.path.join(basedir, 'dev.db')
 
 class ProductionConfig(Config):
     DEBUG = False
@@ -28,7 +29,9 @@ class ProductionConfig(Config):
 
 class TestingConfig(Config):
     TESTING = True
-    SQLALCHEMY_DATABASE_URI = 'postgresql://localhost/leaderboard_test'
+    # use SQLite for testing by default so CI doesn't require Postgres
+    SQLALCHEMY_DATABASE_URI = os.environ.get('TEST_DATABASE_URL') or \
+        'sqlite:///' + os.path.join(basedir, 'test.db')
     WTF_CSRF_ENABLED = False
 
 config = {

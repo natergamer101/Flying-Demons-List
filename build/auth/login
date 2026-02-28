@@ -3,13 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    {% if config.get('FREEZER_BASE_URL') %}
-    <!-- ensure links resolve correctly when frozen for a project page -->
-    <base href="{{ config.get('FREEZER_BASE_URL') }}">
-    {% endif %}
-    <title>{% block title %}Game Leaderboard{% endblock %}</title>
+    
+    <title>Login - Game Leaderboard</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}"> --> <!-- Temporarily disabled -->
+    <!-- <link rel="stylesheet" href="/static/css/custom.css"> --> <!-- Temporarily disabled -->
     <style>
         /* Override Bootstrap CSS custom properties for dark theme */
         :root {
@@ -248,7 +245,7 @@
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="container">
-            <a class="navbar-brand" href="{{ url_for('main.index') }}">
+            <a class="navbar-brand" href="/">
                 <strong>Game Leaderboard</strong>
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -257,70 +254,68 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('main.index') }}">Home</a>
+                        <a class="nav-link" href="/">Home</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('main.leaderboard') }}">Leaderboard</a>
+                        <a class="nav-link" href="/leaderboard">Leaderboard</a>
                     </li>
-                    {% if current_user.is_authenticated %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('claims.submit') }}">Submit Claim</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('claims.my_claims') }}">My Claims</a>
-                        </li>
-                        {% if current_user.is_admin %}
-                            <li class="nav-item">
-                                <a class="nav-link" href="{{ url_for('admin.dashboard') }}">Admin</a>
-                            </li>
-                        {% endif %}
-                    {% endif %}
+                    
                 </ul>
                 <ul class="navbar-nav">
-                    {% if current_user.is_authenticated %}
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                {% if current_user.profile_picture %}
-                                    <img src="{{ url_for('static', filename='uploads/' + current_user.profile_picture) }}" alt="Profile" class="rounded-circle me-2" style="width: 30px; height: 30px; object-fit: cover;">
-                                {% endif %}
-                                {{ current_user.username }}
-                                {% if current_user.is_admin %}
-                                    <span class="badge bg-warning ms-1">Admin</span>
-                                {% endif %}
-                            </a>
-                            <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                                <li><a class="dropdown-item" href="{{ url_for('users.profile', username=current_user.username) }}">Profile</a></li>
-                                <li><a class="dropdown-item" href="{{ url_for('users.edit_profile') }}">Edit Profile</a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}">Logout</a></li>
-                            </ul>
-                        </li>
-                    {% else %}
+                    
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('auth.login') }}">Login</a>
+                            <a class="nav-link" href="/auth/login">Login</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('auth.register') }}">Register</a>
+                            <a class="nav-link" href="/auth/register">Register</a>
                         </li>
-                    {% endif %}
+                    
                 </ul>
             </div>
         </div>
     </nav>
 
     <main class="container mt-4">
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-                        {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
+        
+            
+        
 
-        {% block content %}{% endblock %}
+        
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                <h2 class="card-title text-center mb-4">Login</h2>
+                <form method="POST" action="">
+                    <input id="csrf_token" name="csrf_token" type="hidden" value="ImMyYTA5YjE4YjcwN2ExNWI3NTU1OGZmZTI2ODQwZjg5YmFmZjhjYzMi.aaJDpw.T8XjjyMThwVdaezRgZsReEFCPvI">
+                    <div class="mb-3">
+                        <label class="form-label" for="username">Username</label>
+                        <input class="form-control" id="username" name="username" required type="text" value="">
+                        
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="password">Password</label>
+                        <input class="form-control" id="password" name="password" required type="password" value="">
+                        
+                        <div class="text-end mt-2">
+                            <small>
+                                <a href="/auth/reset-password">Forgot Password?</a>
+                            </small>
+                        </div>
+                    </div>
+                    <div class="d-grid">
+                        <input class="btn btn-primary btn-lg" id="submit" name="submit" type="submit" value="Login">
+                    </div>
+                </form>
+                <hr class="my-4">
+                <p class="text-center mb-0">
+                    Don't have an account? <a href="/auth/register">Register here</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
     </main>
 
     <footer class="mt-5 py-4 border-top">
@@ -330,7 +325,7 @@
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="{{ url_for('static', filename='js/custom.js') }}"></script>
-    {% block scripts %}{% endblock %}
+    <script src="/static/js/custom.js"></script>
+    
 </body>
 </html>
