@@ -78,6 +78,111 @@ flask run
 
 Visit http://localhost:5000
 
+## Deployment Options
+
+The repository has always been a normal Flask application; the GitHub Pages
+support described later is optional.  If you want the site to be **dynamic and
+interactive**, you must host it somewhere that can run Python (Heroku, Render,
+Railway, your own VPS, etc.).  The tools below make that easy:
+
+- A `Procfile` is included for Heroku-style deployments.
+- A `Dockerfile` is provided if you prefer containerizing the app.
+- The `requirements.txt` now lists `gunicorn` to serve the app in production.
+
+### Heroku (example)
+
+1. Install the Heroku CLI and log in:
+   ```bash
+   heroku login
+   ```
+2. Create an app:
+   ```bash
+   heroku create your-app-name
+   ```
+3. (Optional) provision a database:
+   ```bash
+   heroku addons:create heroku-postgresql:hobby-dev
+   ```
+4. Push the code:
+   ```bash
+   git push heroku main
+   ```
+
+Heroku will automatically detect the `Procfile` and install dependencies.  Set
+any required environment variables with `heroku config:set SECRET_KEY=...` and
+`heroku config:set DATABASE_URL=...`.
+
+### Render
+
+Render is another popular (and free‑tier) platform that can build directly from
+GitHub.  To deploy this application on Render:
+
+1. Sign in at https://render.com and create a new **Web Service**.
+2. Connect your GitHub account and select the `Flying-Demons-List` repository.
+3. Use the `Python` environment.
+4. Set the **Build Command** to something that upgrades pip and installs
+dependencies into the service's environment.  The default `pip` on Render is a
+little old and sometimes skips packages, which is why you saw `gunicorn: command
+not found` in the log.  A safe command is:
+   ```bash
+   python -m pip install --upgrade pip
+   python -m pip install -r requirements.txt
+   ```
+5. Set the **Start Command** to:
+   ```bash
+   gunicorn run:app --bind 0.0.0.0:$PORT
+   ```
+6. (Optional) specify environment variables such as `SECRET_KEY` and
+   `DATABASE_URL` in the service settings.  Render provides a managed PostgreSQL
+   plan you can add under the **Addons** section, or you can use a separate
+   database host.
+
+Render will automatically build and deploy on every push to the selected
+branch (typically `main`).  You can also create a `render.yaml` file with the
+configuration below and push it to version control; Render will pick it up
+automatically.
+
+```yaml
+services:
+  - type: web
+    name: leaderboard
+    env: python
+    branch: main
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn run:app --bind 0.0.0.0:$PORT
+    plan: free
+    disk: 512
+```
+
+Once deployed, the service URL will host the full dynamic application with
+login, submission forms, and database interactions.  You no longer need to run
+`flask freeze` or use GitHub Pages unless you want a static demo copy.
+
+### Running locally with Gunicorn
+
+```bash
+pip install gunicorn
+export FLASK_APP=run.py
+export FLASK_ENV=production
+gunicorn run:app --bind 0.0.0.0:5000
+```
+
+### Using the included Dockerfile
+
+```bash
+docker build -t leaderboard .
+docker run -p 5000:5000 \
+    -e SECRET_KEY=yourkey \
+    -e DATABASE_URL=sqlite:///dev.db \
+    leaderboard
+```
+
+Once the app is running on a host, you will have a fully interactive site with
+login, submissions, and database-backed features.  You no longer need to run
+`flask freeze` or deal with the `gh-pages` branch unless you still want a
+static demonstration copy.
+
+```
 ## Project Structure
 
 ```
