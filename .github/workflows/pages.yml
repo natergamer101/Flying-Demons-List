@@ -67,6 +67,8 @@ PYCODE
       - name: Freeze static site
         run: |
           flask freeze
+          # Create .nojekyll to disable Jekyll processing on GitHub Pages
+          touch build/.nojekyll
 
       - name: Configure Pages
         uses: actions/configure-pages@v3
