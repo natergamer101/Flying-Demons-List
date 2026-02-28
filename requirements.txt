@@ -13,4 +13,7 @@ Frozen-Flask==1.0.2
 
 # WSGI server for production deployment/demo hosting
 # (used by Heroku, Render, etc.)
-gunicorn==23.1.0
+# gunicorn 23.1.0 is not published; bump to a released version.
+# Locking to 23.0.0 which is known to exist, or use a range if
+# you prefer to track newer releases.
+gunicorn==23.0.0
