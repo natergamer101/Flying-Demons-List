@@ -40,3 +40,4 @@ htmlcov/
 
 # Flask-Migrate
 migrations/
+build/
