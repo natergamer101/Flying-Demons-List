@@ -143,4 +143,20 @@ def freeze():
     click.echo('Static site generated in the `build/` directory.')
 
 if __name__ == '__main__':
+    # Ensure database tables exist and seed levels if needed
+    with app.app_context():
+        db.create_all()
+        if Level.query.count() == 0:
+            default_levels = [
+                {'name': 'Level 1 - Tutorial', 'description': 'Learn the basics', 'difficulty': 'Easy'},
+                {'name': 'Level 2 - Getting Started', 'description': 'Apply your skills', 'difficulty': 'Easy'},
+                {'name': 'Level 3 - Intermediate Challenge', 'description': 'Test your abilities', 'difficulty': 'Medium'},
+                {'name': 'Level 4 - Advanced Tactics', 'description': 'Master complex mechanics', 'difficulty': 'Medium'},
+                {'name': 'Level 5 - Expert Trial', 'description': 'Push your limits', 'difficulty': 'Hard'},
+                {'name': 'Level 6 - Nightmare Mode', 'description': 'Only for the best', 'difficulty': 'Hard'},
+            ]
+            for lvl in default_levels:
+                level = Level(**lvl)
+                db.session.add(level)
+            db.session.commit()
     app.run()

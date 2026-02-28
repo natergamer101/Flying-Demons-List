@@ -31,6 +31,7 @@ def create_app(config_name='development'):
     def youtube_id_filter(url):
         return extract_youtube_id(url)
 
+
     # Register blueprints
     from app.auth import auth_bp
     from app.main import main_bp
@@ -43,6 +44,24 @@ def create_app(config_name='development'):
     app.register_blueprint(claims_bp, url_prefix='/claims')
     app.register_blueprint(users_bp, url_prefix='/user')
     app.register_blueprint(admin_bp, url_prefix='/admin')
+
+    # Ensure tables exist and seed levels if needed
+    from app.models import Level
+    with app.app_context():
+        db.create_all()
+        if Level.query.count() == 0:
+            default_levels = [
+                {'name': 'Level 1 - Tutorial', 'description': 'Learn the basics', 'difficulty': 'Easy'},
+                {'name': 'Level 2 - Getting Started', 'description': 'Apply your skills', 'difficulty': 'Easy'},
+                {'name': 'Level 3 - Intermediate Challenge', 'description': 'Test your abilities', 'difficulty': 'Medium'},
+                {'name': 'Level 4 - Advanced Tactics', 'description': 'Master complex mechanics', 'difficulty': 'Medium'},
+                {'name': 'Level 5 - Expert Trial', 'description': 'Push your limits', 'difficulty': 'Hard'},
+                {'name': 'Level 6 - Nightmare Mode', 'description': 'Only for the best', 'difficulty': 'Hard'},
+            ]
+            for lvl in default_levels:
+                level = Level(**lvl)
+                db.session.add(level)
+            db.session.commit()
 
     # Error handlers
     @app.errorhandler(404)
